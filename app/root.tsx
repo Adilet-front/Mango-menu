@@ -1,3 +1,4 @@
+// root.tsx
 import {
   isRouteErrorResponse,
   Links,
@@ -6,10 +7,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-
 import type { Route } from "./+types/root";
-import "./app.css";
 
+// -------- Links --------
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -21,8 +21,18 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
+  {
+    rel: "icon",
+    type: "image/png",
+    href: "/1046798.png",
+  },
+  {
+    rel: "stylesheet",
+    href: "/app/app.css",
+  },
 ];
 
+// -------- Layout Component --------
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -41,32 +51,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// -------- App Component --------
 export default function App() {
   return <Outlet />;
 }
 
+// -------- Error Boundary --------
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
-  let stack: string | undefined;
+  const isDev = import.meta.env.DEV;
 
-  if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
-  }
+  const isRouteError = isRouteErrorResponse(error);
+  const status = isRouteError ? error.status : null;
+
+  const message = isRouteError ? (status === 404 ? "404" : "Error") : "Oops!";
+  const details = isRouteError
+    ? status === 404
+      ? "The requested page could not be found."
+      : error.statusText || "An unexpected error occurred."
+    : error instanceof Error && isDev
+    ? error.message
+    : "An unexpected error occurred.";
+  const stack = error instanceof Error && isDev ? error.stack : undefined;
 
   return (
     <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
+      <h1 className="text-3xl font-bold">{message}</h1>
+      <p className="mt-2 text-gray-700">{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
+        <pre className="mt-4 w-full p-4 overflow-x-auto bg-gray-100 text-sm text-red-600 rounded">
           <code>{stack}</code>
         </pre>
       )}
